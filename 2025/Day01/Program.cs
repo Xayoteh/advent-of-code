@@ -15,7 +15,7 @@ Console.WriteLine($"Part 1: {password}");
 Console.WriteLine($"Part 2: {realPassword}");
 
 IEnumerable<string> ReadInput(string path) =>
-    File.ReadLines(path).Select(x => x.Trim());
+    File.ReadLines(path);
 
 int GetPassword(IEnumerable<string> rotations, bool useMethod2 = false)
 {
