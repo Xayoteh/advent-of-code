@@ -7,33 +7,52 @@ const string INPUT_PATH = "../input.txt";
 
 IEnumerable<string> rotations = ReadInput(INPUT_PATH);
 
-List<int> dialSequence = GetDialSequence(rotations);
-int password = dialSequence.Count(x => x == 0);
+int password = GetPassword(rotations);
+int realPassword = GetPassword(rotations, true);
 
 Console.WriteLine("** Day 1 **");
 Console.WriteLine($"Part 1: {password}");
+Console.WriteLine($"Part 2: {realPassword}");
 
 IEnumerable<string> ReadInput(string path) =>
     File.ReadLines(path).Select(x => x.Trim());
 
-List<int> GetDialSequence(IEnumerable<string> rotations)
+int GetPassword(IEnumerable<string> rotations, bool useMethod2 = false)
 {
-    List<int> sequence = [];
+    int password = 0;
     int current = 50;
 
-    foreach(string rotation in rotations)
+    foreach (string rotation in rotations)
     {
         char direction = rotation[0];
-        int distance = int.Parse(rotation[1..]) % 100;
+        int distance = int.Parse(rotation[1..]);
 
-        current = direction switch {
-            'L' when distance > current => 99 - distance + 1 + current,
-            'L' => current - distance,
-            _ => (current + distance) % 100
-        };
+        if(useMethod2)
+            password += distance / 100;
+            
+        distance %= 100;
 
-        sequence.Add(current);
+        switch (direction)
+        {
+            case 'L' when distance > current:
+                if(useMethod2 && current != 0)
+                    ++password;
+                current += 99 - distance + 1;
+                break;
+            case 'L':
+                current -= distance;
+                break;
+            default:
+                current += distance;
+                if(useMethod2 && current > 100)
+                    ++password;
+                current %= 100;
+                break;
+        }
+
+        if(current == 0 && distance != 0)
+            ++password;
     }
 
-    return sequence;
+    return password;
 }
