@@ -3,31 +3,51 @@ Solution to Advent of Code 2025 - Day 2
 https://adventofcode.com/2025/day/2
 */
 
+using System.Text;
+
 const string INPUT_PATH = "../input.txt";
 
 IEnumerable<(long, long)> ranges = ReadInput(INPUT_PATH);
 List<long> invalidIds = GetInvalidIds(ranges);
+List<long> invalidIds2 = GetInvalidIds(ranges, onlyHalfs: false);
 
 Console.WriteLine("** Day 2 **");
-Console.WriteLine($"Part 1 {invalidIds.Sum()}");
+Console.WriteLine($"Part 1: {invalidIds.Sum()}");
+Console.WriteLine($"Part 2: {invalidIds2.Sum()}");
 
-List<long> GetInvalidIds(IEnumerable<(long, long)> ranges)
+List<long> GetInvalidIds(IEnumerable<(long, long)> ranges, bool onlyHalfs = true)
 {
     List<long> invalidIds = [];
 
-    foreach(var range in ranges)
+    foreach (var range in ranges)
     {
-        for(var id = range.Item1; id <= range.Item2; id++)
+        var sb = new StringBuilder();
+
+        for (var id = range.Item1; id <= range.Item2; id++)
         {
+            sb.Clear();
+
             var text = $"{id}";
+            int limit = onlyHalfs ? 2 : text.Length;
 
-            if(text.Length % 2 != 0)
-                continue;
+            for (var p = 2; p <= limit; p++)
+            {
+                if (text.Length % p != 0)
+                    continue;
 
-            var middle = text.Length/2;
+                int length = text.Length / p;
 
-            if(text[..middle] == text[middle..])
-                invalidIds.Add(id);
+                for (int _ = 0; _ < p; _++)
+                    sb.Append(text[..length]);
+
+                if (sb.ToString() == text)
+                {
+                    invalidIds.Add(id);
+                    break;
+                }
+
+                sb.Clear();
+            }
         }
     }
 
