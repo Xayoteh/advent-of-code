@@ -6,44 +6,56 @@ https://adventofcode.com/2025/day/3
 const string INPUT_PATH = "../input.txt";
 
 IEnumerable<string> batteryBanks = ReadInput(INPUT_PATH);
-List<int> banksJoltages = GetJoltages(batteryBanks);
+
+List<long> banksJoltages = GetJoltages(batteryBanks, 2);
+List<long> banksJoltages2 = GetJoltages(batteryBanks, 12);
 
 Console.WriteLine("** Day 3 **");
 Console.WriteLine($"Part 1: {banksJoltages.Sum()}");
+Console.WriteLine($"Part 2: {banksJoltages2.Sum()}");
 
-int GetMaxJoltage(string bank)
+long GetMaxJoltage(string bank, int batteriesNeeded)
 {
-    var d = 0;
-    var u = -1;
+    var batteriesOn = new Stack<int>();
 
-    for(var i = 0; i < bank.Length - 1; i++)
+    for(var i = 0; i < bank.Length; i++)
     {
         var battery = bank[i] - '0';
+        var remainingBatteries = bank.Length - i;
+        
+        while(batteriesOn.Count > 0 && battery > batteriesOn.Peek() 
+            && remainingBatteries >= batteriesNeeded - batteriesOn.Count + 1)
+        {
+            batteriesOn.Pop();
+        }
 
-        if(battery > d)
-        {
-            d = battery;
-            u = - 1;
-        }
-        else if(battery > u)
-        {
-            u = battery;
-        }
+        if(batteriesOn.Count < batteriesNeeded)
+            batteriesOn.Push(battery);
     }
 
-    u = Math.Max(u, bank[^1] - '0');
-
-    return d * 10 + u; 
+    return GetJoltage(batteriesOn);
 }
 
-List<int> GetJoltages(IEnumerable<string> batteryBanks)
+long GetJoltage(Stack<int> batteries)
 {
-    List<int> joltages = [];
+    long joltage = 0;
+    long multiplier = 1;
 
-    foreach(string bank in batteryBanks)
+    foreach (int battery in batteries)
     {
-        joltages.Add(GetMaxJoltage(bank));
+        joltage += battery * multiplier;
+        multiplier *= 10;
     }
+
+    return joltage;
+}
+
+List<long> GetJoltages(IEnumerable<string> batteryBanks, int batteriesNeeded)
+{
+    List<long> joltages = [];
+
+    foreach (string bank in batteryBanks)
+        joltages.Add(GetMaxJoltage(bank, batteriesNeeded));
 
     return joltages;
 }
