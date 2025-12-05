@@ -6,10 +6,41 @@ https://adventofcode.com/2025/day/5
 const string INPUT_PATH = "../input.txt";
 
 var (ranges, ingredients) = ReadInput(INPUT_PATH);
+
 var freshIngredients = GetFreshIngredients(ranges, ingredients);
+var ingredientsPerRange = GetIngredientsPerRange(ranges);
 
 Console.WriteLine("** Day 5 **");
 Console.WriteLine($"Part 1: {freshIngredients.Count()}");
+Console.WriteLine($"Part 2: {ingredientsPerRange.Sum()}");
+
+List<(long, long)> MergeRanges(List<(long start, long end)> ranges)
+{
+    List<(long, long)> mergedRanges = [];
+
+    var sorted = ranges.OrderBy(r => r.start);
+    var current = sorted.First();
+
+    foreach (var range in sorted)
+    {
+        if (current.end >= range.start)
+        {
+            current.end = Math.Max(current.end, range.end);
+        }
+        else
+        {
+            mergedRanges.Add(current);
+            current = range;
+        }
+    }
+
+    mergedRanges.Add(current);
+
+    return mergedRanges;
+}
+
+IEnumerable<long> GetIngredientsPerRange(List<(long start, long end)> ranges)
+    => ranges.Select(r => r.end - r.start + 1);
 
 IEnumerable<long> GetFreshIngredients(List<(long start, long end)> ranges, List<long> ingredients)
     => ingredients.Where(x => ranges.Any(r => x >= r.start && x <= r.end));
@@ -33,6 +64,8 @@ IEnumerable<long> GetFreshIngredients(List<(long start, long end)> ranges, List<
     {
         ingredients.Add(long.Parse(line));
     }
+
+    ranges = MergeRanges(ranges);
 
     return (ranges, ingredients);
 }
