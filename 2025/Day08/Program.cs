@@ -1,6 +1,6 @@
 ﻿/*
-Solution to Advent of Code 2025 - Day 7
-https://adventofcode.com/2025/day/7
+Solution to Advent of Code 2025 - Day 8
+https://adventofcode.com/2025/day/8
 */
 
 const string INPUT_PATH = "../input.txt";
@@ -12,8 +12,47 @@ List<HashSet<Point>> circuits = ConnectBoxes(pairs, 1000);
 IEnumerable<int> circuitsSizes = circuits.Select(c => c.Count).OrderByDescending(s => s);
 int part1 = circuitsSizes.Take(3).Aggregate((acc, x) => acc * x);
 
+(Point a, Point b) = ConnectAllBoxes(pairs, 1000, circuits, boxes.Count);
+int part2 = a.X * b.X;
+
 Console.WriteLine("** Day 8 **");
 Console.WriteLine($"Part 1: {part1}");
+Console.WriteLine($"Part 2: {part2}");
+
+(Point, Point) ConnectAllBoxes(IEnumerable<(Point a, Point b, double d)> pairs, int skip, List<HashSet<Point>> circuits, int boxes)
+{
+    foreach(var (a, b, d) in pairs.Skip(skip))
+    {
+        var candidates = circuits.Where(c => c.Contains(a) || c.Contains(b));
+        HashSet<Point> circuit = [];
+        
+        switch(candidates.Count())
+        {
+            case 0:
+                circuits.Add(circuit);
+                break;
+            case 1:
+                circuit = candidates.First();
+                break;
+            default:
+                circuits = circuits.Where(c => !c.Contains(a) && !c.Contains(b)).ToList();
+
+                circuit = candidates.First();
+                circuit.UnionWith(candidates.Last());
+
+                circuits.Add(circuit);
+                break;
+        }
+
+        circuit.Add(a);
+        circuit.Add(b);   
+
+        if(circuits[0].Count == boxes)
+            return (a, b);
+    }
+
+    return (new(0, 0, 0), new(0, 0, 0));
+}
 
 List<HashSet<Point>> ConnectBoxes(IEnumerable<(Point a, Point b, double d)> pairs, int n)
 {
