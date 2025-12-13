@@ -6,38 +6,45 @@ https://adventofcode.com/2025/day/11
 const string INPUT_PATH = "../input.txt";
 
 Dictionary<string, List<string>> deviceOutputs = ReadInput(INPUT_PATH);
-List<List<string>> paths = GetPaths(deviceOutputs, "you", "out");
+long youToOut = CountPaths(deviceOutputs, "you", "out");
 
-int part1 = paths.Count;
+// svr -> fft -> dac -> out
+long svrToFft = CountPaths(deviceOutputs, "svr", "fft");
+long fftToDac = CountPaths(deviceOutputs, "fft", "dac");
+long dacToOut = CountPaths(deviceOutputs, "dac", "out");
+
+// svr -> dac -> fft -> out
+long svrToDac = CountPaths(deviceOutputs, "svr", "dac");
+long dacToFft = CountPaths(deviceOutputs, "dac", "fft");
+long fftToOut = CountPaths(deviceOutputs, "fft", "out");
+
+long part1 = youToOut;
+long part2 = svrToFft * fftToDac * dacToOut + svrToDac * dacToFft * fftToOut;
 
 Console.WriteLine("** Day 11 **");
 Console.WriteLine($"Part 1: {part1}");
+Console.WriteLine($"Part 2: {part2}");
 
-List<List<string>> GetPaths(Dictionary<string, List<string>> deviceOutputs, string origin, string destination)
+long CountPaths(Dictionary<string, List<string>> deviceOutputs, string origin, string destination)
 {
-    List<List<string>> paths = [];
-    List<string> currentPath = [];
-    
-    if(deviceOutputs.ContainsKey(origin))
-        Backtrack(origin);
+    Dictionary<string, long> memo = [];
 
-    return paths;
+    memo[destination] = 1;
 
-    void Backtrack(string current)
+    return Aux(origin);
+
+    long Aux(string current)
     {
-        currentPath.Add(current);
+        if(memo.TryGetValue(current, out long paths))
+            return paths;
 
-        if(current == destination)
-        {
-            paths.Add([..currentPath]);
-            currentPath.RemoveAt(currentPath.Count - 1);
-            return;
-        }
+        paths = 0;
 
-        foreach(string output in deviceOutputs[current])
-            Backtrack(output);
+        if(deviceOutputs.TryGetValue(current, out List<string>? outputs))
+            foreach(string output in outputs)
+                paths += Aux(output);
 
-        currentPath.RemoveAt(currentPath.Count - 1);
+        return memo[current] = paths;
     }
 }
 
